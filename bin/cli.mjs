@@ -18,8 +18,9 @@ Usage:
   npx opsx-one help          Show this help message
 
 What init does:
-  1. Copies .github/prompts/opsx-one.prompt.md (the prompt)
-  2. Creates .github/copilot-instructions.md (workspace context)
+  1. Copies .github/agents/opsx-one.agent.md   (the custom agent)
+  2. Copies .github/prompts/opsx-one.prompt.md  (slash command fallback)
+  3. Creates .github/copilot-instructions.md    (workspace context)
      - If one already exists, appends OpenSpec section instead of overwriting
 
 Prerequisites:
@@ -31,13 +32,26 @@ Prerequisites:
 function init() {
   const force = process.argv.includes("--force");
   const cwd = process.cwd();
+
+  const agentsDir = join(cwd, ".github", "agents");
+  const agentDest = join(agentsDir, "opsx-one.agent.md");
+
   const promptsDir = join(cwd, ".github", "prompts");
   const promptDest = join(promptsDir, "opsx-one.prompt.md");
+
   const instructionsDest = join(cwd, ".github", "copilot-instructions.md");
 
   console.log("\n  opsx-one init\n");
 
+  mkdirSync(agentsDir, { recursive: true });
   mkdirSync(promptsDir, { recursive: true });
+
+  if (existsSync(agentDest) && !force) {
+    console.log("  ⚠ .github/agents/opsx-one.agent.md already exists (use --force to overwrite)");
+  } else {
+    copyFileSync(join(TEMPLATES_DIR, "opsx-one.agent.md"), agentDest);
+    console.log("  ✓ .github/agents/opsx-one.agent.md");
+  }
 
   if (existsSync(promptDest) && !force) {
     console.log("  ⚠ .github/prompts/opsx-one.prompt.md already exists (use --force to overwrite)");
@@ -70,7 +84,10 @@ function init() {
   console.log(`
   Done! Reload VS Code (Developer: Reload Window) to activate.
 
-  Usage:
+  Usage (Agent — recommended):
+    Select "OPSX One" from the agent picker dropdown in Chat
+
+  Usage (Slash command fallback):
     Open Copilot Chat → type /opsx-one
 
   Prerequisites (if not done already):
