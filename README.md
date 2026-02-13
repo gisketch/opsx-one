@@ -56,22 +56,24 @@ All phase progress is tracked via `manage_todo_list` so you always see where thi
 
 ## Installation
 
-Copy the prompt file into your project's `.github/prompts/` directory:
+### Quick setup (recommended)
 
 ```bash
-# From your project root
+npx opsx-one init
+```
+
+This copies into your project:
+- `.github/prompts/opsx-one.prompt.md` — the prompt
+- `.github/copilot-instructions.md` — workspace context for Copilot (appends if one already exists)
+
+Then reload VS Code (`Developer: Reload Window`).
+
+### Manual setup
+
+```bash
 mkdir -p .github/prompts
-cp path/to/opsx-one/.github/prompts/opsx-one.prompt.md .github/prompts/
+curl -o .github/prompts/opsx-one.prompt.md https://raw.githubusercontent.com/ArnelGlenn/opsx-one/main/templates/opsx-one.prompt.md
 ```
-
-Or clone this repo and copy the file:
-
-```bash
-git clone https://github.com/your-username/opsx-one.git
-cp opsx-one/.github/prompts/opsx-one.prompt.md your-project/.github/prompts/
-```
-
-Reload VS Code (`Developer: Reload Window`) to pick up the new prompt.
 
 ## Usage
 
@@ -117,12 +119,61 @@ See [OPSX_ONE_GUIDE.md](OPSX_ONE_GUIDE.md) for the full guide with examples, pha
 
 ```
 opsx-one/
+├── bin/
+│   └── cli.mjs                  ← npx opsx-one init
+├── templates/
+│   ├── opsx-one.prompt.md       ← Prompt template (copied to your project)
+│   └── copilot-instructions.md  ← Workspace instructions template
 ├── .github/
-│   └── prompts/
-│       └── opsx-one.prompt.md   ← The prompt (copy this to your project)
+│   ├── prompts/
+│   │   └── opsx-one.prompt.md   ← Prompt (used when developing opsx-one itself)
+│   └── copilot-instructions.md  ← Workspace instructions for this repo
 ├── OPSX_ONE_GUIDE.md            ← Full guide and documentation
 ├── README.md                    ← This file
+├── package.json                 ← npm package config
 └── LICENSE                      ← MIT
+```
+
+## Integration Guide
+
+### New project
+
+```bash
+# 1. Set up your project as usual
+mkdir my-app && cd my-app
+npm init -y
+
+# 2. Initialize OpenSpec
+npm install -g @fission-ai/openspec@latest
+openspec init --tools github-copilot --force
+
+# 3. Add opsx-one
+npx opsx-one init
+
+# 4. Reload VS Code, then:
+#    Open Copilot Chat → /opsx-one
+```
+
+### Existing project
+
+```bash
+cd your-existing-project
+
+# 1. Make sure OpenSpec is initialized
+openspec init --tools github-copilot --force
+
+# 2. Add opsx-one (safe — appends to existing copilot-instructions.md)
+npx opsx-one init
+
+# 3. Reload VS Code, then:
+#    Open Copilot Chat → /opsx-one
+```
+
+### Updating
+
+```bash
+# Re-run init with --force to get the latest prompt
+npx opsx-one@latest init --force
 ```
 
 ## Credits

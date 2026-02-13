@@ -270,14 +270,18 @@ Final report showing everything that happened: artifacts created, tasks complete
    npm install -g @fission-ai/openspec@latest
    ```
 
-2. Initialize in your repo:
+2. Initialize OpenSpec in your repo:
    ```bash
    openspec init --tools github-copilot --force
    ```
 
-3. Reload VS Code (`Developer: Reload Window`).
+3. Install opsx-one:
+   ```bash
+   npx opsx-one init
+   ```
+   This copies the prompt file and workspace instructions into your project.
 
-4. Ensure [opsx-one.prompt.md](.github/prompts/opsx-one.prompt.md) exists in your `.github/prompts/` directory.
+4. Reload VS Code (`Developer: Reload Window`).
 
 ### Basic Usage
 
