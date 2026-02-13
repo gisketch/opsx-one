@@ -72,7 +72,7 @@ Then reload VS Code (`Developer: Reload Window`).
 
 ```bash
 mkdir -p .github/prompts
-curl -o .github/prompts/opsx-one.prompt.md https://raw.githubusercontent.com/ArnelGlenn/opsx-one/main/templates/opsx-one.prompt.md
+curl -o .github/prompts/opsx-one.prompt.md https://raw.githubusercontent.com/gisketch/opsx-one/main/templates/opsx-one.prompt.md
 ```
 
 ## Usage

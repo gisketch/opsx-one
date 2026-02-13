@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "One slash command for the entire OpenSpec spec-driven development lifecycle in VS Code Copilot Chat",
   "license": "MIT",
-  "author": "Arnel Glenn Jimenez",
+  "author": "Ghegi Jimenez <dev@gisketch.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ArnelGlenn/opsx-one.git"
+    "url": "https://github.com/gisketch/opsx-one.git"
   },
   "keywords": [
     "openspec",
