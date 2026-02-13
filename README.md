@@ -136,38 +136,169 @@ opsx-one/
 
 ## Integration Guide
 
-### New project
+### New Projects
+
+Starting fresh? opsx-one gives you spec-driven development from day one. Every feature, fix, and refactor gets a structured paper trail — proposal, specs, design, tasks — before any code is written.
 
 ```bash
-# 1. Set up your project as usual
+# 1. Set up your project
 mkdir my-app && cd my-app
 npm init -y
 
-# 2. Initialize OpenSpec
+# 2. Install OpenSpec CLI (one-time, global)
 npm install -g @fission-ai/openspec@latest
+
+# 3. Initialize OpenSpec in your project
 openspec init --tools github-copilot --force
 
-# 3. Add opsx-one
+# 4. Add opsx-one
 npx opsx-one init
 
-# 4. Reload VS Code, then:
-#    Open Copilot Chat → /opsx-one
+# 5. Reload VS Code (Developer: Reload Window)
 ```
 
-### Existing project
+Now open Copilot Chat and type `/opsx-one`. The AI walks you through everything.
+
+**What you get from the start:**
+
+```
+your-project/
+├── openspec/
+│   ├── config.yaml              ← Project context (tech stack, conventions)
+│   ├── specs/                   ← Source of truth (grows as you archive changes)
+│   └── changes/                 ← Active work + archived history
+├── .github/
+│   ├── prompts/
+│   │   └── opsx-one.prompt.md   ← The prompt
+│   └── copilot-instructions.md  ← Tells Copilot about your OpenSpec setup
+```
+
+**Tip:** Edit `openspec/config.yaml` to add your tech stack and conventions. This gives the AI better context when generating artifacts:
+
+```yaml
+schema: spec-driven
+context: |
+  Tech stack: SvelteKit, TypeScript, TailwindCSS
+  We use conventional commits
+  Domain: e-commerce platform
+```
+
+### Existing Projects (Big Codebases)
+
+This is where opsx-one shines the most. Large projects are exactly where unstructured AI prompts fall apart — too much context, unclear scope, changes that ripple across modules. opsx-one brings order to that chaos.
+
+#### Setup
 
 ```bash
 cd your-existing-project
 
-# 1. Make sure OpenSpec is initialized
+# 1. Initialize OpenSpec (safe — only creates an openspec/ folder)
 openspec init --tools github-copilot --force
 
 # 2. Add opsx-one (safe — appends to existing copilot-instructions.md)
 npx opsx-one init
 
-# 3. Reload VS Code, then:
-#    Open Copilot Chat → /opsx-one
+# 3. Reload VS Code (Developer: Reload Window)
 ```
+
+OpenSpec doesn't touch your existing code. It creates an `openspec/` directory alongside your source — that's it.
+
+#### How It Helps on Big Codebases
+
+**Problem: "Just fix the auth flow" → AI changes 15 files with no plan**
+
+With opsx-one, that becomes:
+1. AI asks scope (small/medium/large) → you pick **Large**
+2. Creates a proposal documenting *why* and *what* — you approve or revise
+3. Creates delta specs describing exactly what's changing in behavior
+4. Creates a design document with architecture decisions
+5. Creates a task checklist — you see every step before code is written
+6. Implements task-by-task, checking off as it goes
+7. Verifies implementation matches the specs
+8. Archives everything for your team's history
+
+**Problem: "I don't know where to start on this ticket"**
+
+Use the explore option:
+```
+/opsx-one
+→ choose "I want to explore ideas first"
+```
+The AI scans your codebase — file structure, dependencies, patterns — then suggests directions and a change name. You're not starting from zero.
+
+**Problem: "The AI keeps making assumptions about our architecture"**
+
+Add context to `openspec/config.yaml`:
+```yaml
+context: |
+  Tech stack: Next.js 14, PostgreSQL, Prisma ORM, NextAuth
+  Architecture: App Router with server components, API routes for mutations
+  Conventions: use server actions, avoid client-side data fetching
+  Domain: B2B SaaS invoicing platform
+  Testing: Vitest for unit tests, Playwright for E2E
+rules:
+  proposal:
+    - Always include a "Migration Impact" section for database changes
+  tasks:
+    - Max 8 tasks per change — break larger work into multiple changes
+```
+
+This context is fed to the AI on every artifact creation. The more specific you are, the better the output.
+
+#### Working with Existing Specs
+
+You don't need to document your entire system upfront. Specs build incrementally:
+
+1. **First change:** Creates `openspec/specs/auth/spec.md` with requirements for what you changed
+2. **Second change to auth:** Delta specs reference existing specs, adding/modifying requirements
+3. **Over time:** Your specs become a living reference of system behavior
+
+Each archived change merges its delta specs into the main specs automatically. You never have to manually maintain them.
+
+#### Example: Adding a Feature to a Large Codebase
+
+```
+/opsx-one add-invoice-export-csv
+```
+
+```
+[askQuestions] Scope? → Medium (4-8 tasks, multi-module)
+[askQuestions] Testing? → Broader (integration)
+[askQuestions] Archive? → Yes
+
+AI creates proposal.md:
+  Intent: Users need to export invoices as CSV for accounting software
+  Scope: Invoice list page, new API endpoint, CSV generation utility
+  Out of scope: PDF export, scheduled exports
+[askQuestions] Approve proposal? → Approve
+
+AI creates specs/invoicing/spec.md (delta):
+  ADDED: CSV Export requirement with 3 scenarios
+  (valid export, empty state, large dataset pagination)
+[askQuestions] Approve specs? → Approve
+
+AI creates tasks.md:
+  1.1 Create CSV generation utility
+  1.2 Add GET /api/invoices/export endpoint
+  1.3 Add "Export CSV" button to invoice list
+  1.4 Handle empty state (no invoices)
+  1.5 Add loading state during export
+  1.6 Write integration test for export endpoint
+[askQuestions] Approve tasks? → Approve
+
+[askQuestions] Implement now? → Yes
+
+AI implements task-by-task...
+✓ 6/6 tasks complete
+
+Verification: all checks passed
+[askQuestions] Archive? → Archive now
+
+✓ Archived to openspec/changes/archive/2026-02-13-add-invoice-export-csv/
+✓ Specs synced to openspec/specs/invoicing/spec.md
+```
+
+One request. Clear plan. Verified implementation. Documented history.
 
 ### Updating
 
