@@ -23,13 +23,17 @@ Usage:
 What init does:
   1. Copies .github/agents/opsx-one.agent.md   (the custom agent)
   2. Copies .github/prompts/opsx-one.prompt.md  (slash command fallback)
-  3. Creates .github/copilot-instructions.md    (workspace context)
+  3. Copies .github/prompts/opsx-one-retrofit.prompt.md (retrofit prompt)
+  4. Copies .github/prompts/opsx-one-init.prompt.md (new project bootstrap prompt)
+  5. Creates .github/copilot-instructions.md    (workspace context)
      - If one already exists, appends OpenSpec section instead of overwriting
 
 Update behavior:
   - update always replaces:
     .github/agents/opsx-one.agent.md
     .github/prompts/opsx-one.prompt.md
+    .github/prompts/opsx-one-retrofit.prompt.md
+    .github/prompts/opsx-one-init.prompt.md
     .github/copilot-instructions.md
 
 Prerequisites:
@@ -46,6 +50,8 @@ function setup({ force, mode }) {
 
   const promptsDir = join(cwd, ".github", "prompts");
   const promptDest = join(promptsDir, "opsx-one.prompt.md");
+  const retrofitPromptDest = join(promptsDir, "opsx-one-retrofit.prompt.md");
+  const initPromptDest = join(promptsDir, "opsx-one-init.prompt.md");
 
   const instructionsDest = join(cwd, ".github", "copilot-instructions.md");
 
@@ -67,6 +73,20 @@ function setup({ force, mode }) {
   } else {
     copyFileSync(join(TEMPLATES_DIR, "opsx-one.prompt.md"), promptDest);
     console.log("  ✓ .github/prompts/opsx-one.prompt.md");
+  }
+
+  if (existsSync(retrofitPromptDest) && !force) {
+    console.log("  ⚠ .github/prompts/opsx-one-retrofit.prompt.md already exists (use --force to overwrite)");
+  } else {
+    copyFileSync(join(TEMPLATES_DIR, "opsx-one-retrofit.prompt.md"), retrofitPromptDest);
+    console.log("  ✓ .github/prompts/opsx-one-retrofit.prompt.md");
+  }
+
+  if (existsSync(initPromptDest) && !force) {
+    console.log("  ⚠ .github/prompts/opsx-one-init.prompt.md already exists (use --force to overwrite)");
+  } else {
+    copyFileSync(join(TEMPLATES_DIR, "opsx-one-init.prompt.md"), initPromptDest);
+    console.log("  ✓ .github/prompts/opsx-one-init.prompt.md");
   }
 
   const instructionsTemplate = readFileSync(join(TEMPLATES_DIR, "copilot-instructions.md"), "utf-8");

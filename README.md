@@ -6,13 +6,17 @@ One agent. Full spec-driven development lifecycle. Zero wasted requests.
 
 ## Why
 
-Standard OpenSpec workflows require 5-12 separate chat commands:
+OPSX One follows OpenSpec philosophy, but optimizes hard for token efficiency.
+
+Standard OpenSpec-style workflows often require many separate chat requests:
 
 ```
 /opsx-new → /opsx-ff → /opsx-apply → /opsx-verify → /opsx-archive
 ```
 
-Each command is a separate AI request. That means repeated context loading, token waste, and broken flow.
+Each new chat request reloads context, burns tokens, and interrupts momentum.
+
+OPSX One bundles that lifecycle into a single request by using `askQuestions` at each decision point. Instead of ending the session and waiting for a new prompt, the agent keeps running and asks structured follow-ups in-place.
 
 **OPSX One** is a persistent agent that stays active for your entire session. It orchestrates the full lifecycle autonomously — spawning subagents for codebase exploration and parallel verification — while you only interact through structured `askQuestions` prompts.
 
@@ -21,6 +25,33 @@ Each command is a separate AI request. That means repeated context loading, toke
 | Standard (5 commands) | 5 | ~150-200K |
 | Accuracy-first (9-12 commands) | 9-12 | ~300-400K |
 | **OPSX One** | **1** | **~50-80K** |
+
+## Before vs After
+
+### Before (multi-request workflow)
+
+- Prompt planning → **1 request**
+- AI plans and asks clarifications
+- You reply with clarifications → **1 request**
+- AI updates plan
+- You ask to implement → **1 request**
+- AI implements
+- You review and request fixes → **1 request**
+- AI fixes and returns result
+
+Net effect: multiple request boundaries for one change.
+
+### After (single-request OPSX flow)
+
+- Start one custom prompt mode (for example, `/opsx-one` or your scoped variant like `/opsx-big`) → **1 request**
+- AI asks for change name via `askQuestions` → you answer (**no new request**)
+- AI asks testing level via `askQuestions` → you answer (**no new request**)
+- AI creates `proposal.md`, asks review via `askQuestions` → you approve/revise (**no new request**)
+- AI creates design/spec/tasks and uses the same review loop (**no new request**)
+- AI implements
+- AI asks final verification/changes via `askQuestions` (**no new request**)
+
+Net effect: full planning-to-implementation flow, still within one request boundary.
 
 ## What It Does
 
@@ -88,6 +119,8 @@ npx opsx-one update
 This copies into your project:
 - `.github/agents/opsx-one.agent.md` — the custom agent (primary)
 - `.github/prompts/opsx-one.prompt.md` — slash command fallback
+- `.github/prompts/opsx-one-retrofit.prompt.md` — existing project bootstrap flow
+- `.github/prompts/opsx-one-init.prompt.md` — new project bootstrap flow
 - `.github/copilot-instructions.md` — workspace context for Copilot (appends if one already exists)
 
 Then reload VS Code (`Developer: Reload Window`).
@@ -154,12 +187,16 @@ opsx-one/
 ├── templates/
 │   ├── opsx-one.agent.md        ← Agent template (copied to your project)
 │   ├── opsx-one.prompt.md       ← Prompt fallback template
+│   ├── opsx-one-retrofit.prompt.md ← Existing project retrofit template
+│   ├── opsx-one-init.prompt.md  ← New project init template
 │   └── copilot-instructions.md  ← Workspace instructions template
 ├── .github/
 │   ├── agents/
 │   │   └── opsx-one.agent.md    ← Agent (used when developing opsx-one itself)
 │   ├── prompts/
 │   │   └── opsx-one.prompt.md   ← Prompt fallback
+│   │   ├── opsx-one-retrofit.prompt.md ← Retrofit flow
+│   │   └── opsx-one-init.prompt.md ← Init flow
 │   └── copilot-instructions.md  ← Workspace instructions for this repo
 ├── OPSX_ONE_GUIDE.md            ← Full guide and documentation
 ├── README.md                    ← This file
