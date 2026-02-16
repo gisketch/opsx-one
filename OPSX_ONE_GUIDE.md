@@ -277,9 +277,14 @@ Final report showing everything that happened: artifacts created, tasks complete
 
 3. Install opsx-one:
    ```bash
-   npx opsx-one init
+   npx github:gisketch/opsx-one init
    ```
    This copies the prompt file and workspace instructions into your project.
+
+   To refresh and replace existing OPSX files later:
+   ```bash
+   npx github:gisketch/opsx-one update
+   ```
 
 4. Reload VS Code (`Developer: Reload Window`).
 

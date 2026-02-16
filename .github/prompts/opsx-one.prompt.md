@@ -152,7 +152,7 @@ Create artifacts in dependency order using CLI-driven loop. Gate behavior adapts
 
 1. Print the full artifact content in chat output.
 2. Ask via `askQuestions` (free text enabled for custom feedback):
-   > "Review: <artifact-name>"
+   > "Please review the artifact shown above."
    - `Approve` (recommended)
    - `Revise (one pass)`
    - `Custom feedback` — user types specific changes
@@ -237,6 +237,16 @@ If `Abort`: call `manage_todo_list` to mark all remaining phases `completed` (wi
 ## Phase 7: Verification
 
 > **TODO:** Call `manage_todo_list` — set Phase 6 to `completed`, Phase 7 to `in-progress`.
+
+Before running ANY verification checks, ask via `askQuestions`:
+> "Would you like me to run the verification checks now, or should we address any breakage you noticed first?"
+- `Run verification checks now` (recommended)
+- `Fix issues first, then verify`
+- `Stop for manual review`
+
+If `Fix issues first, then verify` is selected, resolve issues first, then ask this same verification-start question again before launching checks.
+
+If `Stop for manual review` is selected, end and mark remaining phases as skipped.
 
 Always runs after implementation completes, regardless of scope size.
 

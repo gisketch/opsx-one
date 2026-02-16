@@ -13,9 +13,12 @@ const HELP = `
 opsx-one — One-command OpenSpec lifecycle for VS Code Copilot Chat
 
 Usage:
-  npx opsx-one init          Set up opsx-one in the current project
-  npx opsx-one init --force  Overwrite existing files
-  npx opsx-one help          Show this help message
+  npx opsx-one init                         Set up opsx-one in the current project
+  npx opsx-one update                       Replace opsx-one files in the current project
+  npx github:gisketch/opsx-one init        Run directly from GitHub in the current project
+  npx github:gisketch/opsx-one update      Run update directly from GitHub in the current project
+  npx opsx-one init --force                 Overwrite existing files
+  npx opsx-one help                         Show this help message
 
 What init does:
   1. Copies .github/agents/opsx-one.agent.md   (the custom agent)
@@ -23,14 +26,19 @@ What init does:
   3. Creates .github/copilot-instructions.md    (workspace context)
      - If one already exists, appends OpenSpec section instead of overwriting
 
+Update behavior:
+  - update always replaces:
+    .github/agents/opsx-one.agent.md
+    .github/prompts/opsx-one.prompt.md
+    .github/copilot-instructions.md
+
 Prerequisites:
   - OpenSpec CLI: npm install -g @fission-ai/openspec@latest
   - Initialize OpenSpec: openspec init --tools github-copilot --force
   - VS Code with GitHub Copilot extension
 `;
 
-function init() {
-  const force = process.argv.includes("--force");
+function setup({ force, mode }) {
   const cwd = process.cwd();
 
   const agentsDir = join(cwd, ".github", "agents");
@@ -41,7 +49,8 @@ function init() {
 
   const instructionsDest = join(cwd, ".github", "copilot-instructions.md");
 
-  console.log("\n  opsx-one init\n");
+  const operation = mode === "update" ? "update" : "init";
+  console.log(`\n  opsx-one ${operation}\n`);
 
   mkdirSync(agentsDir, { recursive: true });
   mkdirSync(promptsDir, { recursive: true });
@@ -62,7 +71,13 @@ function init() {
 
   const instructionsTemplate = readFileSync(join(TEMPLATES_DIR, "copilot-instructions.md"), "utf-8");
 
+  const overwriteInstructions = mode === "update";
+
   if (existsSync(instructionsDest)) {
+    if (overwriteInstructions) {
+      writeFileSync(instructionsDest, instructionsTemplate);
+      console.log("  ✓ .github/copilot-instructions.md (overwritten)");
+    } else {
     const existing = readFileSync(instructionsDest, "utf-8");
     if (existing.includes("opsx-one") || existing.includes("OpenSpec")) {
       if (!force) {
@@ -76,13 +91,20 @@ function init() {
       writeFileSync(instructionsDest, appended);
       console.log("  ✓ .github/copilot-instructions.md (appended OpenSpec section)");
     }
+    }
   } else {
     writeFileSync(instructionsDest, instructionsTemplate);
     console.log("  ✓ .github/copilot-instructions.md");
   }
 
+  const modeMessage = mode === "update"
+    ? "  Done! OPSX One files were updated in this project."
+    : "  Done! Reload VS Code (Developer: Reload Window) to activate.";
+
   console.log(`
-  Done! Reload VS Code (Developer: Reload Window) to activate.
+${modeMessage}
+
+  Reload VS Code (Developer: Reload Window) to activate.
 
   Usage (Agent — recommended):
     Select "OPSX One" from the agent picker dropdown in Chat
@@ -96,9 +118,21 @@ function init() {
 `);
 }
 
+function init() {
+  const force = process.argv.includes("--force");
+  setup({ force, mode: "init" });
+}
+
+function update() {
+  setup({ force: true, mode: "update" });
+}
+
 switch (command) {
   case "init":
     init();
+    break;
+  case "update":
+    update();
     break;
   case "help":
   case "--help":

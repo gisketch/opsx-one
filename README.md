@@ -44,7 +44,7 @@ All phase progress is tracked via `manage_todo_list` so you always see where thi
 ### Agent Capabilities
 
 - **Subagents** — Codebase exploration and verification run in isolated context windows, keeping the main orchestration thread clean
-- **Tool control** — Only the tools needed for spec-driven development are enabled (`edit`, `search`, `runCommands`, `todos`, `agent`, `changes`, `problems`, `fetch`)
+- **Tool control** — Only the tools needed for spec-driven development are enabled (`edit`, `search`, `runCommands`, `todos`, `agent`, `changes`, `problems`, `fetch`, `askQuestions`)
 - **Persistent persona** — Select OPSX One from the agent picker and it stays active for your entire session
 - **Slash command fallback** — Also available as `/opsx-one` for one-shot invocation
 
@@ -66,7 +66,23 @@ All phase progress is tracked via `manage_todo_list` so you always see where thi
 ### Quick setup (recommended)
 
 ```bash
+npx github:gisketch/opsx-one init
+```
+
+To replace existing OPSX files in a project:
+
+```bash
+npx github:gisketch/opsx-one update
+```
+
+Alternative (after npm publish):
+
+```bash
 npx opsx-one init
+```
+
+```bash
+npx opsx-one update
 ```
 
 This copies into your project:
@@ -134,7 +150,7 @@ See [OPSX_ONE_GUIDE.md](OPSX_ONE_GUIDE.md) for the full guide with examples, pha
 ```
 opsx-one/
 ├── bin/
-│   └── cli.mjs                  ← npx opsx-one init
+│   └── cli.mjs                  ← npx github:gisketch/opsx-one init
 ├── templates/
 │   ├── opsx-one.agent.md        ← Agent template (copied to your project)
 │   ├── opsx-one.prompt.md       ← Prompt fallback template
@@ -169,7 +185,10 @@ npm install -g @fission-ai/openspec@latest
 openspec init --tools github-copilot --force
 
 # 4. Add opsx-one
-npx opsx-one init
+npx github:gisketch/opsx-one init
+
+# Later, refresh OPSX files to latest templates
+npx github:gisketch/opsx-one update
 
 # 5. Reload VS Code (Developer: Reload Window)
 ```
@@ -215,7 +234,10 @@ cd your-existing-project
 openspec init --tools github-copilot --force
 
 # 2. Add opsx-one (safe — appends to existing copilot-instructions.md)
-npx opsx-one init
+npx github:gisketch/opsx-one init
+
+# Later, replace with latest OPSX templates
+npx github:gisketch/opsx-one update
 
 # 3. Reload VS Code (Developer: Reload Window)
 ```
@@ -322,8 +344,11 @@ One request. Clear plan. Verified implementation. Documented history.
 ### Updating
 
 ```bash
-# Re-run init with --force to get the latest agent + prompt
-npx opsx-one@latest init --force
+# Replace existing OPSX files with the latest templates
+npx github:gisketch/opsx-one update
+
+# Alternative after npm publish
+npx opsx-one@latest update
 ```
 
 ## Credits

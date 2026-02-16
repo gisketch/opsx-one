@@ -154,7 +154,7 @@ Create artifacts in dependency order. Gate behavior adapts based on scope:
 
 1. Print the full artifact content in chat.
 2. Ask via `askQuestions` (free text enabled):
-   > "Review: <artifact-name>"
+   > "Please review the artifact shown above."
    - `Approve` (recommended)
    - `Revise (one pass)`
    - `Custom feedback` — user types specific changes
@@ -224,6 +224,16 @@ If a task is ambiguous, errors occur, or a design issue surfaces, ask via `askQu
 ## Phase 7: Verification
 
 Set Phase 6 `completed`, Phase 7 `in-progress`.
+
+Before running ANY verification subagents, ask via `askQuestions`:
+> "Would you like me to run the verification checks now, or should we address any breakage you noticed first?"
+- `Run verification checks now` (recommended)
+- `Fix issues first, then verify`
+- `Stop for manual review`
+
+If user chooses `Fix issues first, then verify`, resolve reported issues and ask this same verification-start question again before launching subagents.
+
+If user chooses `Stop for manual review`, end the workflow and mark remaining phases as skipped.
 
 **Run 3 verification dimensions as parallel subagents** for isolated, unbiased analysis:
 
