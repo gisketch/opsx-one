@@ -22,18 +22,22 @@ Usage:
 
 What init does:
   1. Copies .github/agents/opsx-one.agent.md   (the custom agent)
-  2. Copies .github/prompts/opsx-one.prompt.md  (slash command fallback)
-  3. Copies .github/prompts/opsx-one-retrofit.prompt.md (retrofit prompt)
-  4. Copies .github/prompts/opsx-one-init.prompt.md (new project bootstrap prompt)
-  5. Creates .github/copilot-instructions.md    (workspace context)
+  2. Copies .github/agents/agent-one.agent.md   (global task cycle agent)
+  3. Copies .github/agents/brainstorm-one.agent.md (brainstorm agent)
+  4. Copies .github/agents/opsx-one-init.agent.md    (new project bootstrap agent)
+  5. Copies .github/agents/opsx-one-retrofit.agent.md (existing project retrofit agent)
+  6. Copies .github/prompts/opsx-one.prompt.md  (slash command fallback)
+  7. Creates .github/copilot-instructions.md    (workspace context)
      - If one already exists, appends OpenSpec section instead of overwriting
 
 Update behavior:
   - update always replaces:
     .github/agents/opsx-one.agent.md
+    .github/agents/agent-one.agent.md
+    .github/agents/brainstorm-one.agent.md
+    .github/agents/opsx-one-init.agent.md
+    .github/agents/opsx-one-retrofit.agent.md
     .github/prompts/opsx-one.prompt.md
-    .github/prompts/opsx-one-retrofit.prompt.md
-    .github/prompts/opsx-one-init.prompt.md
     .github/copilot-instructions.md
 
 Prerequisites:
@@ -47,11 +51,13 @@ function setup({ force, mode }) {
 
   const agentsDir = join(cwd, ".github", "agents");
   const agentDest = join(agentsDir, "opsx-one.agent.md");
+  const agentOneDest = join(agentsDir, "agent-one.agent.md");
+  const brainstormOneDest = join(agentsDir, "brainstorm-one.agent.md");
+  const initOneDest = join(agentsDir, "opsx-one-init.agent.md");
+  const retrofitOneDest = join(agentsDir, "opsx-one-retrofit.agent.md");
 
   const promptsDir = join(cwd, ".github", "prompts");
   const promptDest = join(promptsDir, "opsx-one.prompt.md");
-  const retrofitPromptDest = join(promptsDir, "opsx-one-retrofit.prompt.md");
-  const initPromptDest = join(promptsDir, "opsx-one-init.prompt.md");
 
   const instructionsDest = join(cwd, ".github", "copilot-instructions.md");
 
@@ -75,18 +81,32 @@ function setup({ force, mode }) {
     console.log("  ✓ .github/prompts/opsx-one.prompt.md");
   }
 
-  if (existsSync(retrofitPromptDest) && !force) {
-    console.log("  ⚠ .github/prompts/opsx-one-retrofit.prompt.md already exists (use --force to overwrite)");
+  if (existsSync(agentOneDest) && !force) {
+    console.log("  ⚠ .github/agents/agent-one.agent.md already exists (use --force to overwrite)");
   } else {
-    copyFileSync(join(TEMPLATES_DIR, "opsx-one-retrofit.prompt.md"), retrofitPromptDest);
-    console.log("  ✓ .github/prompts/opsx-one-retrofit.prompt.md");
+    copyFileSync(join(TEMPLATES_DIR, "agent-one.agent.md"), agentOneDest);
+    console.log("  ✓ .github/agents/agent-one.agent.md");
   }
 
-  if (existsSync(initPromptDest) && !force) {
-    console.log("  ⚠ .github/prompts/opsx-one-init.prompt.md already exists (use --force to overwrite)");
+  if (existsSync(brainstormOneDest) && !force) {
+    console.log("  ⚠ .github/agents/brainstorm-one.agent.md already exists (use --force to overwrite)");
   } else {
-    copyFileSync(join(TEMPLATES_DIR, "opsx-one-init.prompt.md"), initPromptDest);
-    console.log("  ✓ .github/prompts/opsx-one-init.prompt.md");
+    copyFileSync(join(TEMPLATES_DIR, "brainstorm-one.agent.md"), brainstormOneDest);
+    console.log("  ✓ .github/agents/brainstorm-one.agent.md");
+  }
+
+  if (existsSync(initOneDest) && !force) {
+    console.log("  ⚠ .github/agents/opsx-one-init.agent.md already exists (use --force to overwrite)");
+  } else {
+    copyFileSync(join(TEMPLATES_DIR, "opsx-one-init.agent.md"), initOneDest);
+    console.log("  ✓ .github/agents/opsx-one-init.agent.md");
+  }
+
+  if (existsSync(retrofitOneDest) && !force) {
+    console.log("  ⚠ .github/agents/opsx-one-retrofit.agent.md already exists (use --force to overwrite)");
+  } else {
+    copyFileSync(join(TEMPLATES_DIR, "opsx-one-retrofit.agent.md"), retrofitOneDest);
+    console.log("  ✓ .github/agents/opsx-one-retrofit.agent.md");
   }
 
   const instructionsTemplate = readFileSync(join(TEMPLATES_DIR, "copilot-instructions.md"), "utf-8");
