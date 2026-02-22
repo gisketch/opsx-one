@@ -100,10 +100,22 @@ All phase progress is tracked via `manage_todo_list` so you always see where thi
 npx github:gisketch/opsx-one init
 ```
 
+Or with Bun:
+
+```bash
+bunx github:gisketch/opsx-one init
+```
+
 To replace existing OPSX files in a project:
 
 ```bash
 npx github:gisketch/opsx-one update
+```
+
+Or with Bun:
+
+```bash
+bunx github:gisketch/opsx-one update
 ```
 
 Alternative (after npm publish):
@@ -113,11 +125,23 @@ npx opsx-one init
 ```
 
 ```bash
+bunx opsx-one init
+```
+
+```bash
 npx opsx-one update
+```
+
+```bash
+bunx opsx-one update
 ```
 
 This copies into your project:
 - `.github/agents/opsx-one.agent.md` — the custom agent (primary)
+- `.github/agents/agent-one.agent.md` — global task execution agent
+- `.github/agents/brainstorm-one.agent.md` — brainstorming agent
+- `.github/agents/designer-one.agent.md` — iterative design-to-code agent
+- `.github/agents/opsx-designer-one.agent.md` — OpenSpec + Designer loop agent
 - `.github/prompts/opsx-one.prompt.md` — slash command fallback
 - `.github/prompts/opsx-one-retrofit.prompt.md` — existing project bootstrap flow
 - `.github/prompts/opsx-one-init.prompt.md` — new project bootstrap flow
@@ -384,8 +408,14 @@ One request. Clear plan. Verified implementation. Documented history.
 # Replace existing OPSX files with the latest templates
 npx github:gisketch/opsx-one update
 
+# Bun equivalent
+bunx github:gisketch/opsx-one update
+
 # Alternative after npm publish
 npx opsx-one@latest update
+
+# Bun equivalent
+bunx opsx-one@latest update
 ```
 
 ## Credits
