@@ -1,0 +1,20 @@
+schema: spec-driven
+
+context: |
+  # --- HARDENED STACK CONTEXT ---
+  Tech Stack:
+  - Framework: Next.js App Router
+  - Database: Neon Postgres
+  - ORM: Prisma
+  - State Management: TanStack Query
+  - Styling: Tailwind CSS + shadcn/ui
+  - Package Manager: Bun
+
+  Architecture Rules (Feature-Sliced Design):
+  - Group files by feature in `src/features/<feature-name>/` (e.g., components, actions.ts, queries.ts, types.ts).
+  - Keep files under 150-200 lines. Break down complex logic.
+  - Use `bunx prisma migrate dev --name <name>` for DB changes. DO NOT use `db push`.
+  - Use `bunx --bun shadcn@latest add <component>` for new UI components.
+  
+  # --- DOMAIN CONTEXT (Added by opsx-one-starter) ---
+
