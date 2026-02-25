@@ -100,6 +100,12 @@ All phase progress is tracked via `manage_todo_list` so you always see where thi
 npx github:gisketch/opsx-one init
 ```
 
+For Copilot CLI-compatible agent files:
+
+```bash
+npx github:gisketch/opsx-one init --runtime cli
+```
+
 Or with Bun:
 
 ```bash
@@ -110,6 +116,12 @@ To replace existing OPSX files in a project:
 
 ```bash
 npx github:gisketch/opsx-one update
+```
+
+For Copilot CLI-compatible agent files:
+
+```bash
+npx github:gisketch/opsx-one update --runtime cli
 ```
 
 Or with Bun:
@@ -169,6 +181,23 @@ add dark mode support
 ```
 
 The agent handles everything from there. You only interact through `askQuestions` popups.
+
+### Copilot CLI mode
+
+1. Install CLI-compatible variants:
+
+```bash
+npx github:gisketch/opsx-one update --runtime cli
+```
+
+2. Start Copilot CLI from your repository root.
+3. Run `/agent` and select the OPSX agent, or invoke directly:
+
+```bash
+copilot --agent opsx-one --prompt "add dark mode support"
+```
+
+If you update agent files during a running session, restart Copilot CLI to reload them.
 
 ### Slash command fallback
 
