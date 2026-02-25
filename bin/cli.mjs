@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync } from "fs";
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
+import readline from "readline";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = resolve(__dirname, "..", "templates");
@@ -15,8 +17,10 @@ opsx-one — One-command OpenSpec lifecycle for VS Code Copilot Chat
 Usage:
   npx opsx-one init                         Set up opsx-one in the current project
   npx opsx-one update                       Replace opsx-one files in the current project
+  npx opsx-one starter-kit                  Clone the OPSX One Starter Kit
   npx github:gisketch/opsx-one init        Run directly from GitHub in the current project
   npx github:gisketch/opsx-one update      Run update directly from GitHub in the current project
+  npx github:gisketch/opsx-one starter-kit Clone the OPSX One Starter Kit directly from GitHub
   npx opsx-one init --force                 Overwrite existing files
   npx opsx-one help                         Show this help message
 
@@ -167,12 +171,66 @@ function update() {
   setup({ force: true, mode: "update" });
 }
 
+function starterKit() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question("> Name: default (starter-kit) ", (answer) => {
+    const projectName = answer.trim() || "starter-kit";
+    const targetDir = resolve(process.cwd(), projectName);
+
+    if (existsSync(targetDir)) {
+      console.error(`\n  Error: Directory '${projectName}' already exists.`);
+      rl.close();
+      process.exit(1);
+    }
+
+    console.log(`\n  Cloning gisketch/opsx-one-starter-kit into ${projectName}...`);
+    try {
+      execSync(`git clone https://github.com/gisketch/opsx-one-starter-kit.git ${projectName}`, { stdio: "inherit" });
+      
+      console.log(`  Setting up fresh git repository...`);
+      const gitDir = join(targetDir, ".git");
+      if (existsSync(gitDir)) {
+        rmSync(gitDir, { recursive: true, force: true });
+      }
+      
+      execSync(`git init`, { cwd: targetDir, stdio: "ignore" });
+      
+      // Update package.json name
+      const pkgPath = join(targetDir, "package.json");
+      if (existsSync(pkgPath)) {
+        const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+        pkg.name = projectName;
+        writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+      }
+
+      console.log(`\n  Done! Your starter kit is ready.`);
+      console.log(`\n  Next steps:`);
+      console.log(`    cd ${projectName}`);
+      console.log(`    bun install`);
+      console.log(`    cp .env.example .env`);
+      console.log(`    bunx prisma migrate dev --name init`);
+      console.log(`    bun dev`);
+      console.log(`\n  Then open VS Code Copilot Chat and type /opsx-one-starter to begin!`);
+    } catch (err) {
+      console.error(`\n  Failed to clone starter kit. Ensure git is installed and you have internet access.`);
+    }
+    rl.close();
+  });
+}
+
 switch (command) {
   case "init":
     init();
     break;
   case "update":
     update();
+    break;
+  case "starter-kit":
+    starterKit();
     break;
   case "help":
   case "--help":
