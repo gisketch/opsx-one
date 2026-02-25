@@ -28,10 +28,12 @@ What init does:
   1. Copies .github/agents/opsx-one.agent.md   (the custom agent)
   2. Copies .github/agents/agent-one.agent.md   (global task cycle agent)
   3. Copies .github/agents/brainstorm-one.agent.md (brainstorm agent)
-  4. Copies .github/agents/opsx-one-init.agent.md    (new project bootstrap agent)
-  5. Copies .github/agents/opsx-one-retrofit.agent.md (existing project retrofit agent)
-  6. Copies .github/prompts/opsx-one.prompt.md  (slash command fallback)
-  7. Creates .github/copilot-instructions.md    (workspace context)
+  4. Copies .github/agents/designer-one.agent.md (iterative design-to-code agent)
+  5. Copies .github/agents/opsx-designer-one.agent.md (OpenSpec + Designer loop agent)
+  6. Copies .github/agents/opsx-one-init.agent.md    (new project bootstrap agent)
+  7. Copies .github/agents/opsx-one-retrofit.agent.md (existing project retrofit agent)
+  8. Copies .github/prompts/opsx-one.prompt.md  (slash command fallback)
+  9. Creates .github/copilot-instructions.md    (workspace context)
      - If one already exists, appends OpenSpec section instead of overwriting
 
 Update behavior:
@@ -39,6 +41,8 @@ Update behavior:
     .github/agents/opsx-one.agent.md
     .github/agents/agent-one.agent.md
     .github/agents/brainstorm-one.agent.md
+    .github/agents/designer-one.agent.md
+    .github/agents/opsx-designer-one.agent.md
     .github/agents/opsx-one-init.agent.md
     .github/agents/opsx-one-retrofit.agent.md
     .github/prompts/opsx-one.prompt.md
@@ -57,6 +61,8 @@ function setup({ force, mode }) {
   const agentDest = join(agentsDir, "opsx-one.agent.md");
   const agentOneDest = join(agentsDir, "agent-one.agent.md");
   const brainstormOneDest = join(agentsDir, "brainstorm-one.agent.md");
+  const designerOneDest = join(agentsDir, "designer-one.agent.md");
+  const opsxDesignerOneDest = join(agentsDir, "opsx-designer-one.agent.md");
   const initOneDest = join(agentsDir, "opsx-one-init.agent.md");
   const retrofitOneDest = join(agentsDir, "opsx-one-retrofit.agent.md");
 
@@ -97,6 +103,20 @@ function setup({ force, mode }) {
   } else {
     copyFileSync(join(TEMPLATES_DIR, "brainstorm-one.agent.md"), brainstormOneDest);
     console.log("  ✓ .github/agents/brainstorm-one.agent.md");
+  }
+
+  if (existsSync(designerOneDest) && !force) {
+    console.log("  ⚠ .github/agents/designer-one.agent.md already exists (use --force to overwrite)");
+  } else {
+    copyFileSync(join(TEMPLATES_DIR, "designer-one.agent.md"), designerOneDest);
+    console.log("  ✓ .github/agents/designer-one.agent.md");
+  }
+
+  if (existsSync(opsxDesignerOneDest) && !force) {
+    console.log("  ⚠ .github/agents/opsx-designer-one.agent.md already exists (use --force to overwrite)");
+  } else {
+    copyFileSync(join(TEMPLATES_DIR, "opsx-designer-one.agent.md"), opsxDesignerOneDest);
+    console.log("  ✓ .github/agents/opsx-designer-one.agent.md");
   }
 
   if (existsSync(initOneDest) && !force) {

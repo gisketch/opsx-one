@@ -1,6 +1,6 @@
 {
   "name": "opsx-one",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "One slash command for the entire OpenSpec spec-driven development lifecycle in VS Code Copilot Chat",
   "license": "MIT",
   "author": "Ghegi Jimenez <dev@gisketch.com>",
