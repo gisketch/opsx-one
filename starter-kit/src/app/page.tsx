@@ -22,7 +22,7 @@ export default function Home() {
             <div className="space-y-2">
               <h3 className="font-semibold text-sm uppercase tracking-wider text-primary">Step 2: Build Features</h3>
               <p className="text-sm text-muted-foreground">
-                Use the <strong>OPSX One</strong> agent to start creating features. It will automatically follow the hardened stack and architecture rules.
+                Use the <a href="https://github.com/gisketch/opsx-one" target="_blank" className="font-bold underline hover:text-primary">OPSX One</a> agent to start creating features. It will automatically follow the hardened stack and architecture rules.
               </p>
             </div>
             <div className="space-y-2">
