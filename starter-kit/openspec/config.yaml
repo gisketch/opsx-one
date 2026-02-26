@@ -6,8 +6,12 @@ context: |
   - Framework: Next.js App Router
   - Database: Neon Postgres
   - ORM: Prisma
+  - Auth: Better Auth (email/password, session-based)
   - State Management: TanStack Query
   - Styling: Tailwind CSS + shadcn/ui
+  - Forms: react-hook-form + Zod
+  - Notifications: Sonner (via shadcn)
+  - Theme: next-themes (dark/light/system)
   - Package Manager: Bun
 
   Architecture Rules (Feature-Sliced Design):
@@ -15,6 +19,9 @@ context: |
   - Keep files under 150-200 lines. Break down complex logic.
   - Use `bunx prisma migrate dev --name <name>` for DB changes. DO NOT use `db push`.
   - Use `bunx --bun shadcn@latest add <component>` for new UI components.
+  - Auth is pre-configured: use `auth.api.getSession()` server-side, `useSession()` client-side.
+  - All protected routes live under `src/app/(app)/`. Auth pages under `src/app/(auth)/`.
+  - Use `toast.success()` / `toast.error()` from `sonner` for user feedback.
   
   # --- DOMAIN CONTEXT (Added by opsx-one-starter) ---
 

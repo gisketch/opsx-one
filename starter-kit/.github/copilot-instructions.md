@@ -6,6 +6,9 @@ This project uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-dr
 2. **ALWAYS CHECK `openspec/config.yaml`**: This file contains the project's tech stack, domain context, and architectural rules. You must understand the stack before writing code.
 3. **DATABASE CHANGES (MIGRATIONS)**: If you are creating or modifying the database schema, you MUST edit `prisma/schema.prisma` and then run `bunx prisma migrate dev --name <descriptive-name>` to generate a migration file and apply the changes. **DO NOT use `db push`** as it does not track history and can cause data loss in production.
 4. **UI COMPONENTS**: We use `shadcn/ui`. If you need a new component (e.g., a Dialog), run `bunx --bun shadcn@latest add dialog` instead of building it from scratch.
+5. **AUTH**: Better Auth is pre-configured. Use `auth.api.getSession({ headers: await headers() })` server-side and `useSession()` from `@/lib/auth-client` client-side. Auth pages live under `src/app/(auth)/`, protected pages under `src/app/(app)/`.
+6. **NOTIFICATIONS**: Use `toast.success()` / `toast.error()` from `sonner` for user feedback.
+7. **FORMS**: Use `react-hook-form` with `zod` for form validation. Import `zodResolver` from `@hookform/resolvers/zod`.
 
 ## 🏗️ ARCHITECTURE & DECOUPLING RULES 🏗️
 
