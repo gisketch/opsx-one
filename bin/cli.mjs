@@ -80,7 +80,7 @@ function getAgentContent(fileName, runtime) {
   }
 
   return source
-    .replace(/^tools:\n(?:[ \t]*-[^\n]*\n)+/m, "")
+    .replace(/^tools:\n(?:[ \t]+-[^\n]*\n)+/m, "")
     .replace(/askQuestions/g, "ask_user")
     .replace(/ask_questions/g, "ask_user")
     .replace(/#tool:todos/g, "manage_todo_list");

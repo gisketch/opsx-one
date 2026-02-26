@@ -168,6 +168,34 @@ mkdir -p .github/agents
 curl -o .github/agents/opsx-one.agent.md https://raw.githubusercontent.com/gisketch/opsx-one/main/templates/opsx-one.agent.md
 ```
 
+### Starter Kit (fastest for new apps)
+
+If you want a ready-to-run full-stack baseline, scaffold the starter kit:
+
+```bash
+npx github:gisketch/opsx-one starter-kit
+```
+
+Or with Bun:
+
+```bash
+bunx github:gisketch/opsx-one starter-kit
+```
+
+This command prompts for a project name, clones `gisketch/opsx-one-starter-kit`, removes the source `.git` history, and initializes a fresh git repo for your new project.
+
+Typical next steps:
+
+```bash
+cd <your-project-name>
+bun install
+cp .env.example .env
+bunx prisma migrate dev --name init
+bun dev
+```
+
+Then open Copilot Chat and run `/opsx-one-starter` for project interview + context setup, followed by **OPSX One** for feature work.
+
 ## Usage
 
 ### Agent mode (recommended)
