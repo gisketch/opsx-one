@@ -24,6 +24,7 @@
   "files": [
     "bin/",
     "templates/",
+    "starter-kit/",
     "LICENSE",
     "README.md",
     "OPSX_ONE_GUIDE.md"

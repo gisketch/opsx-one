@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync } from "fs";
+import { existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
@@ -273,6 +273,20 @@ function update() {
   setup({ force: true, mode: "update", runtime });
 }
 
+function copyDirSync(src, dest, exclude = []) {
+  mkdirSync(dest, { recursive: true });
+  for (const entry of readdirSync(src)) {
+    if (exclude.includes(entry)) continue;
+    const srcPath = join(src, entry);
+    const destPath = join(dest, entry);
+    if (statSync(srcPath).isDirectory()) {
+      copyDirSync(srcPath, destPath, exclude);
+    } else {
+      copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 function starterKit() {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -289,18 +303,22 @@ function starterKit() {
       process.exit(1);
     }
 
-    console.log(`\n  Cloning gisketch/opsx-one-starter-kit into ${projectName}...`);
+    const starterKitDir = resolve(__dirname, "..", "starter-kit");
+
+    if (!existsSync(starterKitDir)) {
+      console.error(`\n  Error: Bundled starter-kit not found at ${starterKitDir}`);
+      rl.close();
+      process.exit(1);
+    }
+
+    console.log(`\n  Copying starter-kit into ${projectName}...`);
     try {
-      execSync(`git clone https://github.com/gisketch/opsx-one-starter-kit.git ${projectName}`, { stdio: "inherit" });
-      
-      console.log(`  Setting up fresh git repository...`);
-      const gitDir = join(targetDir, ".git");
-      if (existsSync(gitDir)) {
-        rmSync(gitDir, { recursive: true, force: true });
-      }
-      
+      const EXCLUDE = ["node_modules", ".next", ".git"];
+      copyDirSync(starterKitDir, targetDir, EXCLUDE);
+
+      console.log(`  Initializing git repository...`);
       execSync(`git init`, { cwd: targetDir, stdio: "ignore" });
-      
+
       // Update package.json name
       const pkgPath = join(targetDir, "package.json");
       if (existsSync(pkgPath)) {
@@ -318,7 +336,7 @@ function starterKit() {
       console.log(`    bun dev`);
       console.log(`\n  Then open VS Code Copilot Chat and type /opsx-one-starter to begin!`);
     } catch (err) {
-      console.error(`\n  Failed to clone starter kit. Ensure git is installed and you have internet access.`);
+      console.error(`\n  Failed to set up starter kit: ${err.message}`);
     }
     rl.close();
   });
