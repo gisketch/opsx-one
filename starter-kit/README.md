@@ -247,15 +247,21 @@ docker-compose up -d --build
 
 The app runs on port 3000. The Docker image uses a multi-stage Node.js 20 Alpine build with a non-root user for security.
 
-## OPSX One Workflow
+## Building with OPSX One
 
-This repository is pre-configured with [OpenSpec](https://github.com/Fission-AI/OpenSpec) and the OPSX One agent.
+This project is pre-configured with [OpenSpec](https://github.com/Fission-AI/OpenSpec) and the OPSX One agents. After setup, there are only two steps:
 
-1. Open VS Code Copilot Chat
-2. Select the **OPSX One Starter** agent to initialize your project context
-3. Select the **OPSX One** agent to start building features with spec-driven development
+### Step 1: Initialize project context (once)
 
-Every feature goes through: **proposal → specs → design → tasks → implement → verify → archive**.
+Open VS Code Copilot Chat, select the **OPSX One Starter** agent, and tell it about your project. This gives the AI full context about your stack, architecture, and conventions so it can make informed decisions.
+
+> You only need to do this once — it sets up the OpenSpec specs and context for your project.
+
+### Step 2: Build features
+
+Select the **OPSX One** agent and describe what you want to build. That's it.
+
+Every feature goes through the full lifecycle automatically: **proposal → specs → design → tasks → implement → verify → archive**.
 
 ## License
 

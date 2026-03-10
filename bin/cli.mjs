@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readdirSync, statSync } from "fs";
+import { existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readdirSync, statSync, unlinkSync } from "fs";
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
@@ -315,6 +315,16 @@ function starterKit() {
     try {
       const EXCLUDE = ["node_modules", ".next", ".git"];
       copyDirSync(starterKitDir, targetDir, EXCLUDE);
+
+      // npm strips .gitignore during publish — restore from _gitignore
+      const underscoreGitignore = join(targetDir, "_gitignore");
+      const dotGitignore = join(targetDir, ".gitignore");
+      if (existsSync(underscoreGitignore) && !existsSync(dotGitignore)) {
+        copyFileSync(underscoreGitignore, dotGitignore);
+      }
+      if (existsSync(underscoreGitignore)) {
+        unlinkSync(underscoreGitignore);
+      }
 
       console.log(`  Initializing git repository...`);
       execSync(`git init`, { cwd: targetDir, stdio: "ignore" });
