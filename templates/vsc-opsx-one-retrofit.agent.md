@@ -1,6 +1,6 @@
 ---
-name: OPSX One Retrofit
-description: Existing-project retrofit agent for deep audit, OpenSpec config generation, and readiness setup
+name: VSC OPSX One Retrofit
+description: Existing-project retrofit agent for deep audit, OpenSpec config generation, and readiness setup (VS Code Copilot Chat)
 argument-hint: an existing project context to retrofit
 tools:
   - edit

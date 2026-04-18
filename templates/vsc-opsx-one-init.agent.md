@@ -1,6 +1,6 @@
 ---
-name: OPSX One Init
-description: New-project architecture and bootstrap agent with askQuestions-guided scaffolding and OpenSpec setup
+name: VSC OPSX One Init
+description: New-project architecture and bootstrap agent with askQuestions-guided scaffolding and OpenSpec setup (VS Code Copilot Chat)
 argument-hint: a new app idea to initialize
 tools:
   - edit

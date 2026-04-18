@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readd
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
+import { homedir } from "os";
 import readline from "readline";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -11,200 +12,115 @@ const TEMPLATES_DIR = resolve(__dirname, "..", "templates");
 
 const command = process.argv[2];
 
+const BASES = [
+  "opsx-one",
+  "agent-one",
+  "brainstorm-one",
+  "designer-one",
+  "opsx-designer-one",
+  "opsx-one-init",
+  "opsx-one-retrofit",
+];
+
+// Two installable lineups, one per runtime, each with normal + caveman twin.
+const VSC_AGENTS = BASES.flatMap((b) => [`vsc-${b}.agent.md`, `vsc-${b}-caveman.agent.md`]);
+const CLI_AGENTS = BASES.flatMap((b) => [`cli-${b}.agent.md`, `cli-${b}-caveman.agent.md`]);
+const ALL_AGENTS = [...VSC_AGENTS, ...CLI_AGENTS];
+
+const PROMPT_FILES = [
+  "opsx-one.prompt.md",
+  "opsx-one-caveman.prompt.md",
+];
+
 const HELP = `
-opsx-one — One-command OpenSpec lifecycle for VS Code Copilot Chat
+opsx-one — One-command OpenSpec lifecycle for VS Code Copilot Chat & Copilot CLI
 
 Usage:
   npx opsx-one init                         Set up opsx-one in the current project
-  npx opsx-one init --runtime cli           Set up Copilot CLI-compatible agents in current project
+                                            (installs BOTH "VSC ..." and "CLI ..." agent variants)
+  npx opsx-one init --global                Install agents GLOBALLY in ~/.copilot/agents/
+                                            (CLI variants only — Copilot CLI auto-loads them everywhere)
   npx opsx-one update                       Replace opsx-one files in the current project
-  npx opsx-one update --runtime cli         Replace with Copilot CLI-compatible agents
+  npx opsx-one update --global              Replace global agents in ~/.copilot/agents/
   npx opsx-one starter-kit                  Clone the OPSX One Starter Kit
-  npx github:gisketch/opsx-one init        Run directly from GitHub in the current project
-  npx github:gisketch/opsx-one init --runtime cli Run CLI-compatible setup directly from GitHub
-  npx github:gisketch/opsx-one update      Run update directly from GitHub in the current project
-  npx github:gisketch/opsx-one starter-kit Clone the OPSX One Starter Kit directly from GitHub
+  npx github:gisketch/opsx-one init         Run directly from GitHub
   npx opsx-one init --force                 Overwrite existing files
   npx opsx-one help                         Show this help message
 
-What init does:
-  1. Copies .github/agents/opsx-one.agent.md   (the custom agent)
-  2. Copies .github/agents/agent-one.agent.md   (global task cycle agent)
-  3. Copies .github/agents/brainstorm-one.agent.md (brainstorm agent)
-  4. Copies .github/agents/designer-one.agent.md (iterative design-to-code agent)
-  5. Copies .github/agents/opsx-designer-one.agent.md (OpenSpec + Designer loop agent)
-  6. Copies .github/agents/opsx-one-init.agent.md    (new project bootstrap agent)
-  7. Copies .github/agents/opsx-one-retrofit.agent.md (existing project retrofit agent)
-  8. Copies .github/prompts/opsx-one.prompt.md  (slash command fallback)
-  9. Creates .github/copilot-instructions.md    (workspace context)
-     - If one already exists, appends OpenSpec section instead of overwriting
+What init does (project mode, default):
+  Copies .github/agents/vsc-*.agent.md      ← pick these in VS Code Copilot Chat
+  Copies .github/agents/cli-*.agent.md      ← pick these in Copilot CLI
+  Copies .github/prompts/opsx-one*.prompt.md (slash command fallbacks)
+  Creates/updates .github/copilot-instructions.md (workspace context)
 
-Update behavior:
-  - update always replaces:
-    .github/agents/opsx-one.agent.md
-    .github/agents/agent-one.agent.md
-    .github/agents/brainstorm-one.agent.md
-    .github/agents/designer-one.agent.md
-    .github/agents/opsx-designer-one.agent.md
-    .github/agents/opsx-one-init.agent.md
-    .github/agents/opsx-one-retrofit.agent.md
-    .github/prompts/opsx-one.prompt.md
-    .github/copilot-instructions.md
+  Both lineups ship every time — no --runtime flag needed. Just pick the
+  agent matching where you are working. Each variant also has a caveman twin.
+
+What init --global does (Copilot CLI only):
+  Copies cli-*.agent.md into ~/.copilot/agents/ so they show up in /agent
+  from EVERY repository. VSC variants are skipped (they only make sense
+  inside a project's .github/agents/).
+  Restart Copilot CLI to load them.
+
+Caveman variants:
+  Each agent ships with a "<Name> Caveman" twin that responds in caveman-speak,
+  cutting ~75% of output tokens while keeping 100% technical accuracy.
+  Pick them from the agent picker (e.g. "VSC OPSX One Caveman").
 
 Prerequisites:
   - OpenSpec CLI: npm install -g @fission-ai/openspec@latest
   - Initialize OpenSpec: openspec init --tools github-copilot --force
-  - VS Code with GitHub Copilot extension
+  - VS Code with GitHub Copilot extension, OR Copilot CLI installed
 `;
 
-function getRuntime() {
-  const runtimeFlag = process.argv.find((arg) => arg.startsWith("--runtime="));
-  if (runtimeFlag) {
-    const runtime = runtimeFlag.split("=")[1];
-    return runtime === "cli" ? "cli" : "vscode";
-  }
-
-  const runtimeFlagIndex = process.argv.findIndex((arg) => arg === "--runtime");
-  if (runtimeFlagIndex !== -1) {
-    const runtime = process.argv[runtimeFlagIndex + 1];
-    return runtime === "cli" ? "cli" : "vscode";
-  }
-
-  return "vscode";
+function relPath(p, base) {
+  const b = base.endsWith("/") ? base : base + "/";
+  return p.startsWith(b) ? p.slice(b.length) : p;
 }
 
-function getAgentContent(fileName, runtime) {
-  const source = readFileSync(join(TEMPLATES_DIR, fileName), "utf-8");
-  if (runtime !== "cli") {
-    return source;
-  }
-
-  return source
-    .replace(/^tools:\n(?:[ \t]+-[^\n]*\n)+/m, "")
-    .replace(/askQuestions/g, "ask_user")
-    .replace(/ask_questions/g, "ask_user")
-    .replace(/#tool:todos/g, "manage_todo_list");
-}
-
-function writeAgent({ sourceFile, destFile, force, runtime }) {
+function copyTemplate({ srcFile, destFile, force, baseForLog }) {
+  const display = baseForLog ? relPath(destFile, baseForLog) : destFile;
   if (existsSync(destFile) && !force) {
-    console.log(`  ⚠ ${destFile.replace(process.cwd() + "\\", "")} already exists (use --force to overwrite)`);
-    return;
+    console.log(`  ⚠ ${display} already exists (use --force to overwrite)`);
+    return false;
   }
-
-  writeFileSync(destFile, getAgentContent(sourceFile, runtime));
-  console.log(`  ✓ ${destFile.replace(process.cwd() + "\\", "")}`);
+  mkdirSync(dirname(destFile), { recursive: true });
+  copyFileSync(join(TEMPLATES_DIR, srcFile), destFile);
+  console.log(`  ✓ ${display}`);
+  return true;
 }
 
-function setup({ force, mode, runtime }) {
+function setupProject({ force, mode }) {
   const cwd = process.cwd();
-
   const agentsDir = join(cwd, ".github", "agents");
-  const agentDest = join(agentsDir, "opsx-one.agent.md");
-  const agentOneDest = join(agentsDir, "agent-one.agent.md");
-  const brainstormOneDest = join(agentsDir, "brainstorm-one.agent.md");
-  const designerOneDest = join(agentsDir, "designer-one.agent.md");
-  const opsxDesignerOneDest = join(agentsDir, "opsx-designer-one.agent.md");
-  const initOneDest = join(agentsDir, "opsx-one-init.agent.md");
-  const retrofitOneDest = join(agentsDir, "opsx-one-retrofit.agent.md");
-
   const promptsDir = join(cwd, ".github", "prompts");
-  const promptDest = join(promptsDir, "opsx-one.prompt.md");
-
   const instructionsDest = join(cwd, ".github", "copilot-instructions.md");
 
   const operation = mode === "update" ? "update" : "init";
-  console.log(`\n  opsx-one ${operation}\n`);
+  console.log(`\n  opsx-one ${operation} (project mode — installing VSC + CLI variants)\n`);
 
   mkdirSync(agentsDir, { recursive: true });
   mkdirSync(promptsDir, { recursive: true });
 
-  if (existsSync(agentDest) && !force) {
-    console.log("  ⚠ .github/agents/opsx-one.agent.md already exists (use --force to overwrite)");
-  } else {
-    writeAgent({
-      sourceFile: "opsx-one.agent.md",
-      destFile: agentDest,
+  for (const file of ALL_AGENTS) {
+    copyTemplate({
+      srcFile: file,
+      destFile: join(agentsDir, file),
       force,
-      runtime
+      baseForLog: cwd,
     });
   }
 
-  if (existsSync(promptDest) && !force) {
-    console.log("  ⚠ .github/prompts/opsx-one.prompt.md already exists (use --force to overwrite)");
-  } else {
-    copyFileSync(join(TEMPLATES_DIR, "opsx-one.prompt.md"), promptDest);
-    console.log("  ✓ .github/prompts/opsx-one.prompt.md");
-  }
-
-  if (existsSync(agentOneDest) && !force) {
-    console.log("  ⚠ .github/agents/agent-one.agent.md already exists (use --force to overwrite)");
-  } else {
-    writeAgent({
-      sourceFile: "agent-one.agent.md",
-      destFile: agentOneDest,
+  for (const file of PROMPT_FILES) {
+    copyTemplate({
+      srcFile: file,
+      destFile: join(promptsDir, file),
       force,
-      runtime
-    });
-  }
-
-  if (existsSync(brainstormOneDest) && !force) {
-    console.log("  ⚠ .github/agents/brainstorm-one.agent.md already exists (use --force to overwrite)");
-  } else {
-    writeAgent({
-      sourceFile: "brainstorm-one.agent.md",
-      destFile: brainstormOneDest,
-      force,
-      runtime
-    });
-  }
-
-  if (existsSync(designerOneDest) && !force) {
-    console.log("  ⚠ .github/agents/designer-one.agent.md already exists (use --force to overwrite)");
-  } else {
-    writeAgent({
-      sourceFile: "designer-one.agent.md",
-      destFile: designerOneDest,
-      force,
-      runtime
-    });
-  }
-
-  if (existsSync(opsxDesignerOneDest) && !force) {
-    console.log("  ⚠ .github/agents/opsx-designer-one.agent.md already exists (use --force to overwrite)");
-  } else {
-    writeAgent({
-      sourceFile: "opsx-designer-one.agent.md",
-      destFile: opsxDesignerOneDest,
-      force,
-      runtime
-    });
-  }
-
-  if (existsSync(initOneDest) && !force) {
-    console.log("  ⚠ .github/agents/opsx-one-init.agent.md already exists (use --force to overwrite)");
-  } else {
-    writeAgent({
-      sourceFile: "opsx-one-init.agent.md",
-      destFile: initOneDest,
-      force,
-      runtime
-    });
-  }
-
-  if (existsSync(retrofitOneDest) && !force) {
-    console.log("  ⚠ .github/agents/opsx-one-retrofit.agent.md already exists (use --force to overwrite)");
-  } else {
-    writeAgent({
-      sourceFile: "opsx-one-retrofit.agent.md",
-      destFile: retrofitOneDest,
-      force,
-      runtime
+      baseForLog: cwd,
     });
   }
 
   const instructionsTemplate = readFileSync(join(TEMPLATES_DIR, "copilot-instructions.md"), "utf-8");
-
   const overwriteInstructions = mode === "update";
 
   if (existsSync(instructionsDest)) {
@@ -212,19 +128,19 @@ function setup({ force, mode, runtime }) {
       writeFileSync(instructionsDest, instructionsTemplate);
       console.log("  ✓ .github/copilot-instructions.md (overwritten)");
     } else {
-    const existing = readFileSync(instructionsDest, "utf-8");
-    if (existing.includes("opsx-one") || existing.includes("OpenSpec")) {
-      if (!force) {
-        console.log("  ⚠ .github/copilot-instructions.md already contains OpenSpec context (use --force to overwrite)");
+      const existing = readFileSync(instructionsDest, "utf-8");
+      if (existing.includes("opsx-one") || existing.includes("OpenSpec")) {
+        if (!force) {
+          console.log("  ⚠ .github/copilot-instructions.md already contains OpenSpec context (use --force to overwrite)");
+        } else {
+          writeFileSync(instructionsDest, instructionsTemplate);
+          console.log("  ✓ .github/copilot-instructions.md (overwritten)");
+        }
       } else {
-        writeFileSync(instructionsDest, instructionsTemplate);
-        console.log("  ✓ .github/copilot-instructions.md (overwritten)");
+        const appended = existing.trimEnd() + "\n\n" + instructionsTemplate;
+        writeFileSync(instructionsDest, appended);
+        console.log("  ✓ .github/copilot-instructions.md (appended OpenSpec section)");
       }
-    } else {
-      const appended = existing.trimEnd() + "\n\n" + instructionsTemplate;
-      writeFileSync(instructionsDest, appended);
-      console.log("  ✓ .github/copilot-instructions.md (appended OpenSpec section)");
-    }
     }
   } else {
     writeFileSync(instructionsDest, instructionsTemplate);
@@ -233,28 +149,23 @@ function setup({ force, mode, runtime }) {
 
   const modeMessage = mode === "update"
     ? "  Done! OPSX One files were updated in this project."
-    : "  Done! Reload your editor/CLI session to activate.";
-
-  const runtimeMessage = runtime === "cli"
-    ? "  Runtime mode: Copilot CLI"
-    : "  Runtime mode: VS Code Copilot";
-
-  const activationMessage = runtime === "cli"
-    ? "  Restart Copilot CLI to reload agent files."
-    : "  Reload VS Code (Developer: Reload Window) to activate.";
-
-  const usageMessage = runtime === "cli"
-    ? `  Usage (Copilot CLI):\n    Start CLI in repo root and run /agent\n    Or run programmatically: copilot --agent opsx-one --prompt "your task"`
-    : `  Usage (Agent — recommended):\n    Select "OPSX One" from the agent picker dropdown in Chat\n\n  Usage (Slash command fallback):\n    Open Copilot Chat → type /opsx-one`;
+    : "  Done! Reload your editor / restart your CLI to activate.";
 
   console.log(`
 ${modeMessage}
 
-${runtimeMessage}
+  In VS Code Copilot Chat:
+    Reload window → open agent picker → choose any "VSC ..." agent
+    Caveman twins available too: "VSC OPSX One Caveman" etc. (~75% fewer tokens)
 
-${activationMessage}
+  In Copilot CLI:
+    Restart \`copilot\` → run /agent → choose any "CLI ..." agent
+    Or: copilot --agent cli-opsx-one --prompt "your task"
+    Caveman: copilot --agent cli-opsx-one-caveman --prompt "your task"
 
-${usageMessage}
+  Slash command fallback (VS Code):
+    /opsx-one        # full lifecycle
+    /opsx-one-caveman # caveman lifecycle
 
   Prerequisites (if not done already):
     npm install -g @fission-ai/openspec@latest
@@ -262,15 +173,74 @@ ${usageMessage}
 `);
 }
 
+function setupGlobal({ force, mode }) {
+  const home = homedir();
+  const agentsDir = join(home, ".copilot", "agents");
+  const operation = mode === "update" ? "update" : "init";
+  const forceInstructions = process.argv.includes("--force-instructions");
+
+  console.log(`\n  opsx-one ${operation} (global mode → ${agentsDir})\n  Installing CLI variants only (VSC variants only make sense inside a project).\n`);
+
+  mkdirSync(agentsDir, { recursive: true });
+
+  for (const file of CLI_AGENTS) {
+    copyTemplate({
+      srcFile: file,
+      destFile: join(agentsDir, file),
+      force,
+      baseForLog: home,
+    });
+  }
+
+  if (forceInstructions) {
+    const instructionsDest = join(home, ".copilot", "copilot-instructions.md");
+    const instructionsTemplate = readFileSync(join(TEMPLATES_DIR, "copilot-instructions.md"), "utf-8");
+    if (existsSync(instructionsDest) && !force) {
+      console.log(`  ⚠ ~/.copilot/copilot-instructions.md exists (use --force to overwrite)`);
+    } else {
+      writeFileSync(instructionsDest, instructionsTemplate);
+      console.log(`  ✓ ~/.copilot/copilot-instructions.md`);
+    }
+  }
+
+  console.log(`
+  Done! OPSX CLI agents installed GLOBALLY for Copilot CLI.
+  Available in EVERY repository — no per-project setup needed.
+
+  Activation:
+    Restart Copilot CLI (any running session) to load the new agents.
+
+  Usage:
+    copilot                                            # /agent → pick CLI OPSX One
+    copilot --agent cli-opsx-one --prompt "task"
+    copilot --agent cli-opsx-one-caveman --prompt "..." # ~75% fewer tokens
+
+  Available agents (global):
+${BASES.map((b) => `    cli-${b}, cli-${b}-caveman`).join("\n")}
+
+  Prerequisites for OpenSpec workflows (per project):
+    npm install -g @fission-ai/openspec@latest
+    openspec init --tools github-copilot --force
+`);
+}
+
+function setup({ force, mode, global }) {
+  if (global) {
+    setupGlobal({ force, mode });
+  } else {
+    setupProject({ force, mode });
+  }
+}
+
 function init() {
   const force = process.argv.includes("--force");
-  const runtime = getRuntime();
-  setup({ force, mode: "init", runtime });
+  const global = process.argv.includes("--global");
+  setup({ force, mode: "init", global });
 }
 
 function update() {
-  const runtime = getRuntime();
-  setup({ force: true, mode: "update", runtime });
+  const global = process.argv.includes("--global");
+  setup({ force: true, mode: "update", global });
 }
 
 function copyDirSync(src, dest, exclude = []) {

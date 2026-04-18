@@ -79,6 +79,30 @@ All phase progress is tracked via `manage_todo_list` so you always see where thi
 - **Persistent persona** — Select OPSX One from the agent picker and it stays active for your entire session
 - **Slash command fallback** — Also available as `/opsx-one` for one-shot invocation
 
+## 🪨 Caveman Variants (save ~75% tokens)
+
+Every OPSX agent ships with a **Caveman twin** — same brain, fewer words. Inspired by [caveman](https://github.com/JuliusBrussee/caveman), these variants force the agent to respond in caveman-speak (drop articles, pronouns, linking verbs, fluff) for chat output, while keeping artifact files, code, commands, and tool calls completely normal.
+
+```
+Normal:  "I'll now create the proposal artifact based on your input."
+Caveman: "Make proposal now."
+```
+
+Pick them from the agent picker — e.g. **VSC OPSX One Caveman** in VS Code, or `--agent cli-opsx-one-caveman` in Copilot CLI.
+
+## 🧩 Two Runtimes, One Install
+
+OPSX One runs in two places, so every agent ships in **two flavours**:
+
+| Prefix | Where it runs | Differences |
+|---|---|---|
+| `VSC ...` | VS Code Copilot Chat | Includes the `tools:` block, uses `askQuestions` |
+| `CLI ...` | Copilot CLI (`copilot`) | No `tools:` block, uses `ask_user` + `manage_todo_list` |
+
+Both are installed every time you run `init` — no `--runtime` flag needed. You'll see all of them in your agent picker; just pick the one matching the environment you're in.
+
+For Copilot CLI users, **`init --global`** drops the `CLI ...` agents into `~/.copilot/agents/` so they're available in every repo without per-project setup.
+
 ## Prerequisites
 
 - [VS Code](https://code.visualstudio.com/) with [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) extension
@@ -96,38 +120,34 @@ All phase progress is tracked via `manage_todo_list` so you always see where thi
 
 ### Quick setup (recommended)
 
+**Project mode** (per-repository — installs both VSC and CLI variants of every agent):
+
 ```bash
 npx github:gisketch/opsx-one init
 ```
 
-For Copilot CLI-compatible agent files:
+After init, your agent picker will show entries like **VSC OPSX One**, **CLI OPSX One**, **VSC OPSX One Caveman**, **CLI OPSX One Caveman**, etc. Pick whichever matches where you're running.
+
+**Global mode** (Copilot CLI, available in EVERY repo — no per-project setup):
 
 ```bash
-npx github:gisketch/opsx-one init --runtime cli
+npx github:gisketch/opsx-one init --global
 ```
+
+This installs only the `CLI ...` agents into `~/.copilot/agents/`. They show up in `/agent` from any directory you launch `copilot` in. Restart Copilot CLI to load them.
 
 Or with Bun:
 
 ```bash
 bunx github:gisketch/opsx-one init
+bunx github:gisketch/opsx-one init --global
 ```
 
-To replace existing OPSX files in a project:
+To replace existing OPSX files:
 
 ```bash
-npx github:gisketch/opsx-one update
-```
-
-For Copilot CLI-compatible agent files:
-
-```bash
-npx github:gisketch/opsx-one update --runtime cli
-```
-
-Or with Bun:
-
-```bash
-bunx github:gisketch/opsx-one update
+npx github:gisketch/opsx-one update           # project (VSC + CLI)
+npx github:gisketch/opsx-one update --global  # global ~/.copilot/agents/ (CLI only)
 ```
 
 Alternative (after npm publish):
@@ -148,16 +168,22 @@ npx opsx-one update
 bunx opsx-one update
 ```
 
-This copies into your project:
-- `.github/agents/opsx-one.agent.md` — the custom agent (primary)
-- `.github/agents/agent-one.agent.md` — global task execution agent
-- `.github/agents/brainstorm-one.agent.md` — brainstorming agent
-- `.github/agents/designer-one.agent.md` — iterative design-to-code agent
-- `.github/agents/opsx-designer-one.agent.md` — OpenSpec + Designer loop agent
-- `.github/prompts/opsx-one.prompt.md` — slash command fallback
-- `.github/prompts/opsx-one-retrofit.prompt.md` — existing project bootstrap flow
-- `.github/prompts/opsx-one-init.prompt.md` — new project bootstrap flow
-- `.github/copilot-instructions.md` — workspace context for Copilot (appends if one already exists)
+This copies into your project (under `.github/agents/`):
+
+For each base agent (`opsx-one`, `agent-one`, `brainstorm-one`, `designer-one`, `opsx-designer-one`, `opsx-one-init`, `opsx-one-retrofit`), four files are written:
+
+- `vsc-<base>.agent.md` — VS Code Copilot Chat variant
+- `cli-<base>.agent.md` — Copilot CLI variant
+- `vsc-<base>-caveman.agent.md` — VS Code, caveman-speak (~75% fewer tokens)
+- `cli-<base>-caveman.agent.md` — Copilot CLI, caveman-speak
+
+That's 28 agent files total. Plus:
+
+- `.github/prompts/opsx-one.prompt.md` — VS Code slash command fallback
+- `.github/prompts/opsx-one-caveman.prompt.md` — caveman slash command
+- `.github/copilot-instructions.md` — workspace context (appends if one already exists)
+
+For `--global`, only the 14 `cli-*.agent.md` files are installed to `~/.copilot/agents/`.
 
 Then reload VS Code (`Developer: Reload Window`).
 
@@ -212,18 +238,26 @@ The agent handles everything from there. You only interact through `askQuestions
 
 ### Copilot CLI mode
 
-1. Install CLI-compatible variants:
+**Option A — Global install (recommended, available in every repo):**
 
 ```bash
-npx github:gisketch/opsx-one update --runtime cli
+npx github:gisketch/opsx-one init --global
 ```
 
-2. Start Copilot CLI from your repository root.
-3. Run `/agent` and select the OPSX agent, or invoke directly:
+Then restart Copilot CLI. From any directory, run `/agent` and pick a `CLI ...` agent, or invoke directly:
 
 ```bash
-copilot --agent opsx-one --prompt "add dark mode support"
+copilot --agent cli-opsx-one --prompt "add dark mode support"
+copilot --agent cli-opsx-one-caveman --prompt "add dark mode support"   # ~75% fewer tokens
 ```
+
+**Option B — Per-project install:**
+
+```bash
+npx github:gisketch/opsx-one init
+```
+
+This installs both VSC and CLI variants into `.github/agents/`. The CLI ones are picked up automatically when you run `copilot` in that repo.
 
 If you update agent files during a running session, restart Copilot CLI to reload them.
 
