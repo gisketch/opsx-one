@@ -101,7 +101,7 @@ OPSX One runs in two places, so every agent ships in **two flavours**:
 
 Both are installed every time you run `init` — no `--runtime` flag needed. You'll see all of them in your agent picker; just pick the one matching the environment you're in.
 
-For Copilot CLI users, **`init --global`** drops the `CLI ...` agents into `~/.copilot/agents/` so they're available in every repo without per-project setup.
+For Copilot CLI users, **`init --global`** drops every agent (both VSC and CLI variants) into `~/.copilot/agents/` so they're available in every repo without per-project setup.
 
 ## Prerequisites
 
@@ -147,7 +147,7 @@ To replace existing OPSX files:
 
 ```bash
 npx github:gisketch/opsx-one update           # project (VSC + CLI)
-npx github:gisketch/opsx-one update --global  # global ~/.copilot/agents/ (CLI only)
+npx github:gisketch/opsx-one update --global  # global ~/.copilot/agents/ (VSC + CLI)
 ```
 
 Alternative (after npm publish):
@@ -183,7 +183,7 @@ That's 28 agent files total. Plus:
 - `.github/prompts/opsx-one-caveman.prompt.md` — caveman slash command
 - `.github/copilot-instructions.md` — workspace context (appends if one already exists)
 
-For `--global`, only the 14 `cli-*.agent.md` files are installed to `~/.copilot/agents/`.
+For `--global`, all 28 agent files (`vsc-*.agent.md` + `cli-*.agent.md`) are installed to `~/.copilot/agents/`.
 
 Then reload VS Code (`Developer: Reload Window`).
 

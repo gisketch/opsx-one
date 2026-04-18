@@ -39,7 +39,7 @@ Usage:
   npx opsx-one init                         Set up opsx-one in the current project
                                             (installs BOTH "VSC ..." and "CLI ..." agent variants)
   npx opsx-one init --global                Install agents GLOBALLY in ~/.copilot/agents/
-                                            (CLI variants only — Copilot CLI auto-loads them everywhere)
+                                            (installs BOTH VSC and CLI variants)
   npx opsx-one update                       Replace opsx-one files in the current project
   npx opsx-one update --global              Replace global agents in ~/.copilot/agents/
   npx opsx-one starter-kit                  Clone the OPSX One Starter Kit
@@ -56,10 +56,9 @@ What init does (project mode, default):
   Both lineups ship every time — no --runtime flag needed. Just pick the
   agent matching where you are working. Each variant also has a caveman twin.
 
-What init --global does (Copilot CLI only):
-  Copies cli-*.agent.md into ~/.copilot/agents/ so they show up in /agent
-  from EVERY repository. VSC variants are skipped (they only make sense
-  inside a project's .github/agents/).
+What init --global does:
+  Copies BOTH vsc-*.agent.md and cli-*.agent.md into ~/.copilot/agents/
+  so every agent shows up in /agent from EVERY repository.
   Restart Copilot CLI to load them.
 
 Caveman variants:
@@ -179,11 +178,11 @@ function setupGlobal({ force, mode }) {
   const operation = mode === "update" ? "update" : "init";
   const forceInstructions = process.argv.includes("--force-instructions");
 
-  console.log(`\n  opsx-one ${operation} (global mode → ${agentsDir})\n  Installing CLI variants only (VSC variants only make sense inside a project).\n`);
+  console.log(`\n  opsx-one ${operation} (global mode → ${agentsDir})\n  Installing BOTH VSC and CLI variants.\n`);
 
   mkdirSync(agentsDir, { recursive: true });
 
-  for (const file of CLI_AGENTS) {
+  for (const file of ALL_AGENTS) {
     copyTemplate({
       srcFile: file,
       destFile: join(agentsDir, file),
@@ -216,7 +215,7 @@ function setupGlobal({ force, mode }) {
     copilot --agent cli-opsx-one-caveman --prompt "..." # ~75% fewer tokens
 
   Available agents (global):
-${BASES.map((b) => `    cli-${b}, cli-${b}-caveman`).join("\n")}
+${BASES.map((b) => `    vsc-${b}, vsc-${b}-caveman, cli-${b}, cli-${b}-caveman`).join("\n")}
 
   Prerequisites for OpenSpec workflows (per project):
     npm install -g @fission-ai/openspec@latest
